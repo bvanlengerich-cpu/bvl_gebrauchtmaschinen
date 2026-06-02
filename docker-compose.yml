@@ -1,0 +1,17 @@
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    environment:
+      - PORT=3000
+      - DATA_DIR=/data
+      - VIEWER_PASSWORD=${VIEWER_PASSWORD}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - SESSION_SECRET=${SESSION_SECRET}
+    volumes:
+      - bvl_data:/data
+    ports:
+      - "3000:3000"
+
+volumes:
+  bvl_data:

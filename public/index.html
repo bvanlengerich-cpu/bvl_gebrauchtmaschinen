@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BvL Gebrauchtmaschinen</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="logo-bvl.svg">
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginOverlay" class="login-overlay">
+  <div class="login-box">
+    <img src="logo-bvl.svg" alt="BvL">
+    <h1>Gebrauchtmaschinen</h1>
+    <p>Bitte Passwort eingeben</p>
+    <input id="pwInput" type="password" placeholder="Passwort" autocomplete="current-password">
+    <button id="loginBtn">Anmelden</button>
+    <div id="loginError" class="login-error"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" class="hidden">
+  <div class="topbar">
+    <div class="topbar-inner">
+      <img src="logo-bvl.svg" alt="BvL">
+      <div class="titles">
+        <h1>Gebrauchtmaschinen</h1>
+        <div class="sub">BvL Farmtechnology</div>
+      </div>
+      <span id="roleChip" class="rolechip">Betrachter</span>
+      <button id="logoutBtn" class="linkbtn">Abmelden</button>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div id="adminBar" class="adminbar hidden">
+      <h2>Administration</h2>
+      <div class="hint">Sie sind als Admin angemeldet und k&ouml;nnen Maschinen hinzuf&uuml;gen, bearbeiten und l&ouml;schen.</div>
+      <button id="addBtn" class="btn">+ Neue Maschine hinzuf&uuml;gen</button>
+    </div>
+
+    <div id="counter" class="counter"></div>
+    <div id="grid" class="grid"></div>
+    <div id="emptyState" class="empty-state hidden">Noch keine Maschinen vorhanden.</div>
+  </div>
+</div>
+
+<!-- FORMULAR-MODAL -->
+<div id="formModal" class="modal-overlay hidden">
+  <div class="modal">
+    <h2 id="formTitle">Neue Maschine</h2>
+    <form id="machineForm">
+      <input type="hidden" id="machineId">
+      <div class="formgrid">
+        <div class="field full"><label>Maschinenname / Typ</label><input name="typ" required></div>
+        <div class="field"><label>Art / Kategorie</label><input name="art" list="artList" placeholder="z. B. Futtermischwagen"></div>
+        <div class="field"><label>Angebotsnummer</label><input name="angebotsnummer"></div>
+        <div class="field"><label>Baujahr</label><input name="baujahr"></div>
+        <div class="field"><label>Betriebsstunden</label><input name="betriebsstunden"></div>
+        <div class="field"><label>Zustand</label><input name="zustand"></div>
+        <div class="field"><label>Listenpreis</label><input name="listenpreis"></div>
+        <div class="field"><label>H&auml;ndler EP (intern)</label><input name="haendler_ep"></div>
+        <div class="field"><label>Standort</label><input name="standort"></div>
+        <div class="field"><label>Verf&uuml;gbarkeit</label><input name="verfuegbarkeit"></div>
+        <div class="field full"><label>Sonstiges</label><textarea name="sonstiges"></textarea></div>
+        <div class="field full" id="imageField">
+          <label>Bilder (Mehrfachauswahl m&ouml;glich)</label>
+          <input type="file" id="imageInput" accept="image/*" multiple>
+          <div id="thumbPick" class="thumbpick"></div>
+        </div>
+        <div class="field full" id="pdfField">
+          <label>PDF (optional, z. B. Angebot)</label>
+          <input type="file" id="pdfInput" accept="application/pdf">
+        </div>
+      </div>
+      <div id="formStatus" class="formstatus"></div>
+      <div class="modal-actions">
+        <button type="button" id="cancelBtn" class="btn ghost">Abbrechen</button>
+        <button type="submit" id="saveBtn" class="btn">Speichern</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<datalist id="artList">
+  <option value="Futtermischwagen">
+  <option value="Selbstfahrer">
+  <option value="Siloblockschneider">
+  <option value="Einstreutechnik">
+  <option value="Biogastechnik">
+  <option value="Entnahmetechnik">
+  <option value="Sonstiges">
+</datalist>
+
+<script src="app.js"></script>
+</body>
+</html>

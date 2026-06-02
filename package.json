@@ -1,0 +1,19 @@
+{
+  "name": "bvlki-gebrauchtmaschinen",
+  "version": "1.0.0",
+  "description": "BvL Gebrauchtmaschinen - oeffentliche Web-App mit Upload und Speicherung",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.10.0",
+    "cookie-parser": "^1.4.7",
+    "express": "^4.21.2",
+    "multer": "^2.0.1"
+  }
+}
