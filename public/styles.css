@@ -32,6 +32,8 @@ body{font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--tex
 .topbar .titles{flex:1;min-width:200px}
 .topbar h1{font-size:22px;color:var(--bvl-darker);margin:0}
 .topbar .sub{color:var(--muted);font-size:13px}
+.languagebar{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--bvl-darker);font-weight:bold}
+.languagebar select{height:36px;border:1px solid #cdd7dc;border-radius:9px;background:#fff;color:var(--text);font-weight:bold;padding:0 8px}
 .rolechip{background:var(--bvl);color:#fff;border-radius:999px;padding:6px 13px;font-size:13px;font-weight:bold}
 .rolechip.admin{background:var(--accent)}
 .linkbtn{background:none;border:1px solid #cdd7dc;color:var(--bvl-darker);padding:8px 13px;border-radius:9px;cursor:pointer;font-weight:bold;font-size:13px}
@@ -45,6 +47,7 @@ body{font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--tex
 .adminbar .hint{color:var(--muted);font-size:13px;margin-bottom:14px}
 .btn{background:var(--bvl);color:#fff;border:none;padding:10px 16px;border-radius:9px;cursor:pointer;font-weight:bold;font-size:14px}
 .btn:hover{background:var(--bvl-dark)}
+.btn:disabled{opacity:.65;cursor:wait}
 .btn.accent{background:var(--accent)}
 .btn.accent:hover{background:#820816}
 .btn.ghost{background:#fff;border:1px solid #cdd7dc;color:var(--bvl-darker)}

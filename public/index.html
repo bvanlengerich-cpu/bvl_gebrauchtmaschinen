@@ -8,6 +8,7 @@
 <link rel="icon" href="logo-bvl.svg">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.js"></script>
+<script src="vendor/jspdf.umd.min.js"></script>
 <script>if(window.pdfjsLib){pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.js";}</script>
 </head>
 <body>
@@ -32,6 +33,13 @@
       <div class="titles">
         <h1>Gebrauchtmaschinen</h1>
         <div class="sub">BvL Farmtechnology</div>
+      </div>
+      <div class="languagebar">
+        <label for="languageSelect" id="languageLabel">Sprache</label>
+        <select id="languageSelect">
+          <option value="de">DE</option>
+          <option value="en">EN</option>
+        </select>
       </div>
       <span id="roleChip" class="rolechip">Betrachter</span>
       <button id="logoutBtn" class="linkbtn">Abmelden</button>
