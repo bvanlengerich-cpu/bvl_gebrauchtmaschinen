@@ -32,11 +32,19 @@ function eur(label, v){
 async function tryLogin(){
   const pw = $('pwInput').value;
   $('loginError').textContent = '';
-  const r = await fetch('/api/login', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({password: pw})});
-  if(!r.ok){ $('loginError').textContent = 'Falsches Passwort'; return; }
-  const data = await r.json();
-  ROLE = data.role;
-  startApp();
+  $('loginBtn').disabled = true;
+  try{
+    const r = await fetch('/api/login', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({password: pw})});
+    if(!r.ok){ $('loginError').textContent = 'Falsches Passwort'; return; }
+    const data = await r.json();
+    ROLE = data.role;
+    startApp();
+  }catch(err){
+    console.error('Login fehlgeschlagen', err);
+    $('loginError').textContent = 'Login fehlgeschlagen. Bitte erneut versuchen.';
+  }finally{
+    $('loginBtn').disabled = false;
+  }
 }
 
 function startApp(){
