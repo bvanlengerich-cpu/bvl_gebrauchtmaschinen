@@ -79,4 +79,26 @@
         </div>
         <div class="field full" id="pdfField">
           <label>PDF (optional, z. B. Angebot)</label>
-          <input type
+          <input type="file" id="pdfInput" accept="application/pdf">
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" id="cancelBtn" class="btn ghost">Abbrechen</button>
+        <button type="submit" id="saveBtn" class="btn">Speichern</button>
+      </div>
+      <div id="formStatus" class="formstatus"></div>
+    </form>
+  </div>
+</div>
+
+<datalist id="artList">
+  <option value="Gebrauchtmaschine">
+  <option value="Demomaschine">
+  <option value="Neumaschine">
+  <option value="Sonstiges">
+</datalist>
+
+<script src="import.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
