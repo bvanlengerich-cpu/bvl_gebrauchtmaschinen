@@ -6,6 +6,9 @@
 <title>BvL Gebrauchtmaschinen</title>
 <link rel="stylesheet" href="styles.css">
 <link rel="icon" href="logo-bvl.svg">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.js"></script>
+<script>if(window.pdfjsLib){pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.js";}</script>
 </head>
 <body>
 
@@ -38,8 +41,11 @@
   <div class="wrap">
     <div id="adminBar" class="adminbar hidden">
       <h2>Administration</h2>
-      <div class="hint">Sie sind als Admin angemeldet und k&ouml;nnen Maschinen hinzuf&uuml;gen, bearbeiten und l&ouml;schen.</div>
-      <button id="addBtn" class="btn">+ Neue Maschine hinzuf&uuml;gen</button>
+      <div class="hint">W&auml;hlen Sie einen Ordner mit den Maschinen-Unterordnern (je Maschine: Excel, PDF-Angebot und Fotos). Name, Angebotsnummer und Daten werden automatisch ausgelesen. Mehrere Maschinen auf einmal m&ouml;glich.</div>
+      <button id="folderBtn" class="btn">&#128193; Maschinen-Ordner hochladen</button>
+      <button id="addBtn" class="btn ghost">Einzeln manuell hinzuf&uuml;gen</button>
+      <input type="file" id="folderInput" webkitdirectory directory multiple style="display:none">
+      <div id="importStatus" class="formstatus"></div>
     </div>
 
     <div id="counter" class="counter"></div>
@@ -73,28 +79,4 @@
         </div>
         <div class="field full" id="pdfField">
           <label>PDF (optional, z. B. Angebot)</label>
-          <input type="file" id="pdfInput" accept="application/pdf">
-        </div>
-      </div>
-      <div id="formStatus" class="formstatus"></div>
-      <div class="modal-actions">
-        <button type="button" id="cancelBtn" class="btn ghost">Abbrechen</button>
-        <button type="submit" id="saveBtn" class="btn">Speichern</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<datalist id="artList">
-  <option value="Futtermischwagen">
-  <option value="Selbstfahrer">
-  <option value="Siloblockschneider">
-  <option value="Einstreutechnik">
-  <option value="Biogastechnik">
-  <option value="Entnahmetechnik">
-  <option value="Sonstiges">
-</datalist>
-
-<script src="app.js"></script>
-</body>
-</html>
+          <input type

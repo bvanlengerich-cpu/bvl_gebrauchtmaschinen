@@ -103,7 +103,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({
   storage,
-  limits: { fileSize: 30 * 1024 * 1024, files: 40 }
+  limits: { fileSize: 60 * 1024 * 1024, files: 60 }
 });
 
 // ---------- Auth-Routen ----------
@@ -147,7 +147,7 @@ app.get('/uploads/:file', requireAuth, (req, res) => {
 
 // ---------- Maschine anlegen (nur Admin) ----------
 const uploadFields = upload.fields([
-  { name: 'images', maxCount: 30 },
+  { name: 'images', maxCount: 50 },
   { name: 'pdf', maxCount: 1 }
 ]);
 
