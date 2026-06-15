@@ -419,6 +419,39 @@ function imageDataUrlToPdfImage(dataUrl){
     img.src = dataUrl;
   });
 }
+function svgToPngDataUrl(svgText, width, height){
+  return new Promise(resolve=>{
+    const blob = new Blob([svgText], {type:'image/svg+xml;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, width, height);
+      ctx.drawImage(img, 0, 0, width, height);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve('');
+    };
+    img.src = url;
+  });
+}
+async function loadBvlLogoForPdf(){
+  try{
+    const r = await fetch('/logo-bvl.svg');
+    if(!r.ok) return '';
+    return await svgToPngDataUrl(await r.text(), 545, 427);
+  }catch(err){
+    console.warn('BvL-Logo konnte nicht geladen werden', err);
+    return '';
+  }
+}
 async function fetchImageForPdf(filename){
   try{
     const r = await fetch(uploadUrl(filename));
@@ -446,6 +479,7 @@ async function downloadExpose(machineId, button){
   try{
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({orientation:'portrait', unit:'mm', format:'a4'});
+    const bvlLogoDataUrl = await loadBvlLogoForPdf();
     const margin = 16;
     const pageW = doc.internal.pageSize.getWidth();
     const pageH = doc.internal.pageSize.getHeight();
@@ -462,14 +496,19 @@ async function downloadExpose(machineId, button){
     function addHeader(){
       doc.setFillColor(255,255,255);
       doc.rect(0, 0, pageW, 46, 'F');
-      doc.setTextColor(...bvlDark);
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(19);
-      doc.text('BvL', margin, 18);
+      if(bvlLogoDataUrl){
+        doc.addImage(bvlLogoDataUrl, 'PNG', margin, 7, 22, 17.2);
+      }else{
+        doc.setTextColor(...bvlDark);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(19);
+        doc.text('BvL', margin, 18);
+      }
       doc.setFontSize(8);
       doc.setFont('helvetica', 'normal');
-      doc.text('Bernard van Lengerich Maschinenfabrik GmbH & Co. KG', margin, 25);
-      doc.text('Grenzstrasse 16 - 48488 Emsbueren - Germany', margin, 30);
+      doc.setTextColor(...bvlDark);
+      doc.text('Bernard van Lengerich Maschinenfabrik GmbH & Co. KG', margin + 28, 16);
+      doc.text('Grenzstrasse 16 - 48488 Emsbueren - Germany', margin + 28, 21);
       doc.setDrawColor(...bvl);
       doc.setLineWidth(0.6);
       doc.line(margin, 43, pageW - margin, 43);
