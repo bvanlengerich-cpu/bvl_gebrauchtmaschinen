@@ -94,7 +94,8 @@ const I18N = {
     notSpecified:'nicht angegeben',
     exposeInfo:'Gebrauchtmaschine',
     showDealerPrices:'H\u00e4ndlerpreise anzeigen',
-    hideDealerPrices:'H\u00e4ndlerpreise ausblenden'
+    hideDealerPrices:'H\u00e4ndlerpreise ausblenden',
+    priceFootnote:'* Preise verstehen sich netto, zzgl. gesetzlicher MwSt. sowie Fracht- und Transportkosten.'
   },
   en: {
     appTitle:'Used machines',
@@ -142,7 +143,8 @@ const I18N = {
     notSpecified:'not specified',
     exposeInfo:'Used machine',
     showDealerPrices:'Show dealer prices',
-    hideDealerPrices:'Hide dealer prices'
+    hideDealerPrices:'Hide dealer prices',
+    priceFootnote:'* Prices are net prices, excluding VAT and freight/transport costs.'
   }
 };
 
@@ -322,7 +324,7 @@ function cardHtml(m){
     : `<div class="hero placeholder">${esc(t('noImage'))}</div>`;
   const badge = m.art ? `<span class="badge">${esc(artLabel(m.art))}</span>` : '';
   const rows = FIELD_KEYS.map(k=>{
-    const label = fieldLabel(k);
+    const label = fieldLabel(k) + (k === 'listenpreis' ? '*' : '');
     const val = formatFieldValue(k, m[k]);
     const disp = val ? esc(val) : `<span class="empty">&ndash;</span>`;
     return `<div class="row"><strong>${label}</strong><span>${disp}</span></div>`;
@@ -344,6 +346,7 @@ function cardHtml(m){
     <div class="content">
       <h3 class="mtitle">${esc(m.typ)||esc(t('untitled'))}</h3>
       <div class="rows">${rows}</div>
+      ${m.listenpreis ? `<div class="price-note">${esc(t('priceFootnote'))}</div>` : ''}
       ${gallery ? `<div class="gallery">${gallery}</div>` : ''}
       <div class="cardactions">${actions}${expose}${pdf}</div>
     </div>
@@ -600,9 +603,19 @@ async function downloadExpose(machineId, button){
       ['standort', machine.standort],
       ['verfuegbarkeit', machine.verfuegbarkeit],
       ['listenpreis', formatFieldValue('listenpreis', machine.listenpreis)]
-    ].forEach(([key, value])=>drawDataRow(fieldLabel(key), value));
+    ].forEach(([key, value])=>drawDataRow(fieldLabel(key) + (key === 'listenpreis' ? '*' : ''), value));
 
     if(machine.sonstiges) drawDataRow(fieldLabel('sonstiges'), machine.sonstiges);
+
+    if(machine.listenpreis){
+      y += 3;
+      ensureSpace(11);
+      doc.setTextColor(...textGrey);
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(8.5);
+      doc.text(doc.splitTextToSize(t('priceFootnote'), pageW - margin * 2), margin, y + 5);
+      y += 13;
+    }
 
     y += 8;
     ensureSpace(18);

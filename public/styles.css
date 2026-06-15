@@ -74,6 +74,7 @@ body{font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--tex
 .row:last-child{border-bottom:none}
 .row strong{color:var(--bvl-darker);font-weight:bold}
 .row .empty{color:#aab6bc;font-style:italic}
+.price-note{margin:-6px 0 14px;color:var(--muted);font-size:12px;line-height:1.4}
 .gallery{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
 .gallery img{width:64px;height:48px;object-fit:cover;border-radius:8px;border:1px solid #d3dbdf;cursor:pointer}
 .cardactions{margin-top:auto;display:flex;gap:8px;flex-wrap:wrap}
