@@ -34,6 +34,12 @@ body{font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--tex
 .topbar .sub{color:var(--muted);font-size:13px}
 .languagebar{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--bvl-darker);font-weight:bold}
 .languagebar select{height:36px;border:1px solid #cdd7dc;border-radius:9px;background:#fff;color:var(--text);font-weight:bold;padding:0 8px}
+.dealer-toggle{height:36px;display:inline-flex;align-items:center;gap:8px;border:1px solid #cdd7dc;background:#fff;color:var(--bvl-darker);border-radius:9px;padding:0 11px;cursor:pointer;font-weight:bold;font-size:13px;white-space:nowrap}
+.dealer-toggle:hover{background:#f2f5f6}
+.dealer-toggle .eye-icon{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
+.dealer-toggle .eye-open{display:none}
+.dealer-toggle.price-visible .eye-open{display:block}
+.dealer-toggle.price-visible .eye-closed{display:none}
 .rolechip{background:var(--bvl);color:#fff;border-radius:999px;padding:6px 13px;font-size:13px;font-weight:bold}
 .rolechip.admin{background:var(--accent)}
 .linkbtn{background:none;border:1px solid #cdd7dc;color:var(--bvl-darker);padding:8px 13px;border-radius:9px;cursor:pointer;font-weight:bold;font-size:13px}
@@ -55,7 +61,7 @@ body{font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--tex
 
 /* ---------- Cards ---------- */
 .counter{color:var(--muted);font-size:14px;margin-bottom:14px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:22px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:22px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.08);display:flex;flex-direction:column}
 .heroWrap{position:relative;background:#dfe5e8;height:230px;overflow:hidden}
 .hero{width:100%;height:230px;object-fit:cover;display:block;cursor:pointer}
@@ -101,4 +107,39 @@ body{font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--tex
 
 .empty-state{text-align:center;color:var(--muted);padding:60px 20px;font-size:16px}
 .hidden{display:none !important}
-@media(max-width:560px){.formgrid{grid-template-columns:1fr}}
+@media(max-width:720px){
+  .topbar-inner{gap:10px;padding:12px 16px}
+  .topbar img{height:46px}
+  .topbar .titles{min-width:160px}
+  .topbar h1{font-size:19px}
+  .languagebar{gap:6px}
+  .dealer-toggle{padding:0 10px}
+  .wrap{padding:18px 14px}
+}
+@media(max-width:560px){
+  .topbar-inner{align-items:flex-start}
+  .topbar img{height:42px}
+  .topbar .titles{flex:1 1 calc(100% - 58px);min-width:0}
+  .topbar h1{font-size:18px;line-height:1.2}
+  .topbar .sub{font-size:12px}
+  .languagebar{order:3}
+  .dealer-toggle{order:4;flex:1 1 100%;justify-content:center}
+  .rolechip{order:5}
+  .linkbtn{order:6}
+  .adminbar{border-radius:12px;padding:15px}
+  .grid{grid-template-columns:minmax(0,1fr);gap:16px}
+  .card{border-radius:14px}
+  .heroWrap,.hero,.hero.placeholder{height:190px}
+  .content{padding:14px}
+  .rows{padding:6px 10px}
+  .row{grid-template-columns:118px minmax(0,1fr);font-size:13px}
+  .formgrid{grid-template-columns:1fr}
+  .modal{padding:20px}
+  .modal-actions{justify-content:stretch}
+  .modal-actions .btn{flex:1}
+}
+@media(max-width:380px){
+  .dealer-toggle{font-size:12px}
+  .row{grid-template-columns:1fr;gap:2px}
+  .row strong{font-size:12px}
+}

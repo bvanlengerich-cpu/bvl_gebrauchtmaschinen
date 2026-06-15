@@ -3,6 +3,7 @@
 let ROLE = null;
 let MACHINES = [];
 let LANG = localStorage.getItem('bvl_language') || 'de';
+let DEALER_PRICE_VISIBLE = false;
 
 const FIELDS = [
   ['angebotsnummer','Angebotsnummer'],
@@ -91,7 +92,9 @@ const I18N = {
     overview:'Maschinen\u00fcbersicht',
     photos:'Fotos',
     notSpecified:'nicht angegeben',
-    exposeInfo:'Gebrauchtmaschine'
+    exposeInfo:'Gebrauchtmaschine',
+    showDealerPrices:'H\u00e4ndlerpreise anzeigen',
+    hideDealerPrices:'H\u00e4ndlerpreise ausblenden'
   },
   en: {
     appTitle:'Used machines',
@@ -137,7 +140,9 @@ const I18N = {
     overview:'Machine overview',
     photos:'Photos',
     notSpecified:'not specified',
-    exposeInfo:'Used machine'
+    exposeInfo:'Used machine',
+    showDealerPrices:'Show dealer prices',
+    hideDealerPrices:'Hide dealer prices'
   }
 };
 
@@ -150,13 +155,34 @@ const ART_TRANSLATIONS = {
 
 const $ = id => document.getElementById(id);
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function parseMoneyNumber(value){
+  const text = String(value || '').replace(/[^\d.,-]/g, '').trim();
+  if(!text || !/^-?[\d.,]+$/.test(text)) return null;
+  let normalized = text;
+  const comma = normalized.lastIndexOf(',');
+  const dot = normalized.lastIndexOf('.');
+  if(comma !== -1 && dot !== -1){
+    normalized = comma > dot
+      ? normalized.replace(/\./g, '').replace(',', '.')
+      : normalized.replace(/,/g, '');
+  }else if(comma !== -1){
+    normalized = /^\d{1,3}(,\d{3})+$/.test(normalized)
+      ? normalized.replace(/,/g, '')
+      : normalized.replace(',', '.');
+  }else if(dot !== -1 && /^\d{1,3}(\.\d{3})+$/.test(normalized)){
+    normalized = normalized.replace(/\./g, '');
+  }
+  const n = Number(normalized);
+  return Number.isFinite(n) ? n : null;
+}
+
 function eur(label, v){
   if(!v) return v;
   const text = String(v).trim();
-  if(/preis|ep/i.test(label) && /^[\d.,]+$/.test(text)){
-    const n = Number(text.replace(/\./g,'').replace(',','.'));
+  if(/preis|price|ep/i.test(label)){
+    const n = parseMoneyNumber(text);
     const locale = LANG === 'en' ? 'en-US' : 'de-DE';
-    if(!isNaN(n)) return n.toLocaleString(locale,{style:'currency',currency:'EUR',maximumFractionDigits:0});
+    if(n !== null) return n.toLocaleString(locale,{style:'currency',currency:'EUR',maximumFractionDigits:0});
   }
   return text;
 }
@@ -170,6 +196,7 @@ function artLabel(value){
 function formatFieldValue(key, value){
   if(!value) return value;
   if(key === 'art') return artLabel(value);
+  if(key === 'haendler_ep' && !DEALER_PRICE_VISIBLE) return '********';
   return eur(fieldLabel(key), value);
 }
 function setText(id, value){ const el = $(id); if(el) el.textContent = value; }
@@ -184,6 +211,17 @@ function updateRoleChip(){
   if(!chip) return;
   if(ROLE === 'admin'){ chip.textContent = t('adminRole'); chip.classList.add('admin'); }
   else { chip.textContent = t('viewerRole'); chip.classList.remove('admin'); }
+}
+function updateDealerPriceToggle(){
+  const btn = $('dealerPriceToggle');
+  const text = $('dealerPriceToggleText');
+  if(!btn) return;
+  const label = DEALER_PRICE_VISIBLE ? t('hideDealerPrices') : t('showDealerPrices');
+  btn.classList.toggle('price-visible', DEALER_PRICE_VISIBLE);
+  btn.setAttribute('aria-pressed', DEALER_PRICE_VISIBLE ? 'true' : 'false');
+  btn.setAttribute('aria-label', label);
+  btn.setAttribute('title', label);
+  if(text) text.textContent = label;
 }
 function updateStaticText(){
   document.documentElement.lang = LANG === 'en' ? 'en' : 'de';
@@ -225,6 +263,7 @@ function updateStaticText(){
   const pdfLabel = $('pdfField') && $('pdfField').querySelector('label');
   if(pdfLabel) pdfLabel.textContent = t('formPdf');
   updateRoleChip();
+  updateDealerPriceToggle();
 }
 function applyLanguage(){
   localStorage.setItem('bvl_language', LANG);
@@ -252,6 +291,7 @@ async function tryLogin(){
 }
 
 function startApp(){
+  DEALER_PRICE_VISIBLE = false;
   $('loginOverlay').classList.add('hidden');
   $('app').classList.remove('hidden');
   updateStaticText();
@@ -676,6 +716,11 @@ $('logoutBtn').addEventListener('click', async ()=>{ await fetch('/api/logout',{
 $('addBtn').addEventListener('click', newMachine);
 $('cancelBtn').addEventListener('click', closeForm);
 $('languageSelect').addEventListener('change', e=>{ LANG = e.target.value === 'en' ? 'en' : 'de'; applyLanguage(); });
+$('dealerPriceToggle').addEventListener('click', ()=>{
+  DEALER_PRICE_VISIBLE = !DEALER_PRICE_VISIBLE;
+  updateDealerPriceToggle();
+  render();
+});
 updateStaticText();
 
 // Bereits angemeldet?
