@@ -155,8 +155,78 @@ const ART_TRANSLATIONS = {
   'Sonstiges': {de:'Sonstiges', en:'Other'}
 };
 
+const CONDITION_TRANSLATIONS_EN = {
+  'neu':'New',
+  'neuwertig':'As new',
+  'sehr gut':'Very good',
+  'gut':'Good',
+  'mittel':'Fair',
+  'maessig':'Fair',
+  'mittelmaessig':'Fair',
+  'schlecht':'Poor',
+  'schlechter zustand':'Poor condition',
+  'gebraucht':'Used',
+  'normal gebraucht':'Normal used condition',
+  'einsatzbereit':'Ready for use',
+  'funktionstuechtig':'Functional',
+  'reparaturbeduerftig':'Needs repair',
+  'ueberholungsbeduerftig':'Needs overhaul',
+  'nicht einsatzbereit':'Not ready for use',
+  'nicht funktionstuechtig':'Not functional',
+  'nicht funktionsfaehig':'Not functional',
+  'bastlerfahrzeug':'For repair/spares',
+  'ersatzteiltraeger':'For spares',
+  'defekt':'Defective'
+};
+
+const AVAILABILITY_TRANSLATIONS_EN = {
+  'sofort':'Available now',
+  'ab sofort':'Available now',
+  'per sofort':'Available now',
+  'sofort verfuegbar':'Available now',
+  'verfuegbar':'Available',
+  'lagernd':'In stock',
+  'now':'Available now',
+  'kurzfristig':'Available at short notice',
+  'in kuerze':'Available soon',
+  'auf anfrage':'On request',
+  'nach absprache':'By arrangement',
+  'nach vereinbarung':'By arrangement'
+};
+
 const $ = id => document.getElementById(id);
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function normalizeFreeText(value){
+  return String(value || '').trim().toLowerCase()
+    .replace(/Ã¤/g,'ae').replace(/Ã¶/g,'oe').replace(/Ã¼/g,'ue').replace(/ÃŸ/g,'ss')
+    .replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss')
+    .replace(/[^\w.,/-]+/g,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+function translateDurationToEnglish(value){
+  const raw = String(value || '').trim();
+  let text = normalizeFreeText(raw).replace(/,/g,'.');
+  const approx = /^(ca\.?|circa|ungefaehr|etwa)\b/.test(text);
+  text = text.replace(/^(ca\.?|circa|ungefaehr|etwa)\s*/, '').trim();
+  const m = text.match(/^(\d+(?:\.\d+)?)(?:\s*(?:-|bis|\/)\s*(\d+(?:\.\d+)?))?\s*(tag|tage|woche|wochen|kw|monat|monate)$/);
+  if(!m) return '';
+  const number = m[2] ? `${m[1]}-${m[2]}` : m[1];
+  let unit = 'weeks';
+  if(m[3] === 'tag' || m[3] === 'tage') unit = m[1] === '1' && !m[2] ? 'day' : 'days';
+  if(m[3] === 'woche' || m[3] === 'wochen' || m[3] === 'kw') unit = m[1] === '1' && !m[2] ? 'week' : 'weeks';
+  if(m[3] === 'monat' || m[3] === 'monate') unit = m[1] === '1' && !m[2] ? 'month' : 'months';
+  return `${approx ? 'approx. ' : ''}${number} ${unit}`;
+}
+function translateCondition(value){
+  if(LANG !== 'en' || !value) return value;
+  return CONDITION_TRANSLATIONS_EN[normalizeFreeText(value)] || String(value).trim();
+}
+function translateAvailability(value){
+  if(LANG !== 'en' || !value) return value;
+  const normalized = normalizeFreeText(value);
+  return AVAILABILITY_TRANSLATIONS_EN[normalized] || translateDurationToEnglish(value) || String(value).trim();
+}
 function parseMoneyNumber(value){
   const text = String(value || '').replace(/[^\d.,-]/g, '').trim();
   if(!text || !/^-?[\d.,]+$/.test(text)) return null;
@@ -198,6 +268,8 @@ function artLabel(value){
 function formatFieldValue(key, value){
   if(!value) return value;
   if(key === 'art') return artLabel(value);
+  if(key === 'zustand') return translateCondition(value);
+  if(key === 'verfuegbarkeit') return translateAvailability(value);
   if(key === 'haendler_ep' && !DEALER_PRICE_VISIBLE) return '********';
   return eur(fieldLabel(key), value);
 }
@@ -599,9 +671,9 @@ async function downloadExpose(machineId, button){
       ['betriebsstunden', machine.betriebsstunden],
       ['baujahr', machine.baujahr],
       ['art', artLabel(machine.art)],
-      ['zustand', machine.zustand],
+      ['zustand', formatFieldValue('zustand', machine.zustand)],
       ['standort', machine.standort],
-      ['verfuegbarkeit', machine.verfuegbarkeit],
+      ['verfuegbarkeit', formatFieldValue('verfuegbarkeit', machine.verfuegbarkeit)],
       ['listenpreis', formatFieldValue('listenpreis', machine.listenpreis)]
     ].forEach(([key, value])=>drawDataRow(fieldLabel(key) + (key === 'listenpreis' ? '*' : ''), value));
 
