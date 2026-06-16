@@ -78,8 +78,8 @@ body{font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--tex
 .gallery{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
 .gallery img{width:64px;height:48px;object-fit:cover;border-radius:8px;border:1px solid #d3dbdf;cursor:pointer}
 .cardactions{margin-top:auto;display:flex;gap:8px;flex-wrap:wrap}
-.pdflink{color:var(--bvl);font-weight:bold;text-decoration:none;font-size:14px;align-self:center}
-.pdflink:hover{text-decoration:underline}
+.pdflink{display:inline-flex;align-items:center;justify-content:center;min-height:36px;border:1px solid #cdd7dc;border-radius:9px;background:#fff;color:var(--bvl-darker);padding:8px 13px;font-weight:bold;text-decoration:none;font-size:14px;align-self:flex-start;white-space:nowrap}
+.pdflink:hover{background:#f2f5f6;text-decoration:none}
 
 /* ---------- Modal (Formular) ---------- */
 .modal-overlay{position:fixed;inset:0;background:rgba(20,30,38,.6);display:flex;align-items:flex-start;justify-content:center;z-index:8000;padding:30px 16px;overflow:auto}
