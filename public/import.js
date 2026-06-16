@@ -96,9 +96,11 @@ async function extractOfferNumberFromPDF(pdfFile){
 }
 function hasGrossListPriceLabel(value){
   const compact = String(value || "").toLowerCase()
-    .replace(/\s+/g,"")
-    .replace(/[-_:]/g,"");
+    .replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/ß/g,"ss")
+    .replace(/[^a-z0-9]/g,"");
   return compact.includes("bruttolistenpreis")
+    || compact.includes("bruttolistenpreise")
+    || compact.includes("listenpreisbrutto")
     || compact.includes("bruttolistprice")
     || compact.includes("grosslistprice")
     || compact.includes("listpricegross");
@@ -108,10 +110,10 @@ function normalizeListPriceValue(value){
     .replace(/\u00a0/g," ")
     .replace(/\s+/g," ")
     .trim();
-  const matches = text.match(/-?\d{1,3}(?:[.\s]\d{3})+(?:,\d{2})?|-?\d{4,}(?:[,.]\d{2})?/g) || [];
+  const matches = text.match(/-?\d{1,3}(?:[.\s'`´]\d{3})+(?:,\d{2})?|-?\d{4,}(?:[,.]\d{2})?/g) || [];
   for(const raw of matches){
     let cleaned = String(raw)
-      .replace(/\s+/g,"")
+      .replace(/[\s'`´]/g,"")
       .replace(/[^\d,.-]/g,"")
       .trim();
     if(!cleaned) continue;
@@ -137,17 +139,21 @@ function normalizeListPriceValue(value){
 }
 function listPriceFromLabeledText(value){
   const text = String(value || "").replace(/\s+/g," ").trim();
-  const label = text.match(/brutto\s*-?\s*listenpreis|gross\s+list\s+price|list\s+price\s+gross/i);
+  const label = text.match(/brutto\s*-?\s*listen\s*-?\s*preis|listen\s*-?\s*preis\s+brutto|gross\s+list\s+price|list\s+price\s+gross/i);
   if(!label) return "";
   const afterLabel = text.slice(label.index + label[0].length);
   return normalizeListPriceValue(afterLabel) || normalizeListPriceValue(text);
 }
 async function extractListPriceFromPDF(pdfFile){
   try{
-    if(!pdfFile || !window.pdfjsLib) return "";
+    if(!pdfFile) return "";
+    if(!window.pdfjsLib){
+      console.warn("PDF-Bibliothek nicht geladen, Listenpreis kann nicht ausgelesen werden.");
+      return "";
+    }
     const buffer = await pdfFile.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({data:buffer}).promise;
-    const maxPages = Math.min(pdf.numPages || 1, 5);
+    const maxPages = pdf.numPages || 1;
 
     for(let p=1;p<=maxPages;p++){
       const page = await pdf.getPage(p);
@@ -180,7 +186,7 @@ async function extractListPriceFromPDF(pdfFile){
         if(!hasGrossListPriceLabel(row.text) && !hasGrossListPriceLabel(row.compact)) continue;
         const sameRowPrice = listPriceFromLabeledText(row.text) || listPriceFromLabeledText(row.compact) || normalizeListPriceValue(row.text);
         if(sameRowPrice) return sameRowPrice;
-        const nextRows = rows.slice(i + 1, i + 4).map(r=>r.text).join(" ");
+        const nextRows = rows.slice(i + 1, i + 7).map(r=>r.text).join(" ");
         const nextPrice = normalizeListPriceValue(nextRows);
         if(nextPrice) return nextPrice;
       }
@@ -288,6 +294,7 @@ async function handleFolderImport(e){
 
   const folders = Object.keys(folderGroups);
   let done = 0, failed = 0;
+  let missingPdfListPrices = 0;
 
   for(const folder of folders){
     const group = folderGroups[folder];
@@ -306,6 +313,10 @@ async function handleFolderImport(e){
       const pdfMachineTitle = await extractMachineTitleFromPDF(pdf);
       const pdfOfferNumber = await extractOfferNumberFromPDF(pdf);
       const pdfListPrice = await extractListPriceFromPDF(pdf);
+      if(pdf && !pdfListPrice){
+        missingPdfListPrices += 1;
+        console.warn("Kein Bruttolistenpreis im PDF gefunden:", pdf.name);
+      }
 
       const v = parsed.values;
       const fd = new FormData();
@@ -333,7 +344,8 @@ async function handleFolderImport(e){
 
   e.target.value = "";
   if(typeof loadMachines === 'function') loadMachines();
-  setImportStatus(`Fertig: ${folders.length - failed} importiert${failed ? ', ' + failed + ' fehlgeschlagen' : ''}.`, failed>0);
+  const priceHint = missingPdfListPrices ? ` Hinweis: Bei ${missingPdfListPrices} PDF-Angebot(en) wurde kein Bruttolistenpreis gefunden.` : "";
+  setImportStatus(`Fertig: ${folders.length - failed} importiert${failed ? ', ' + failed + ' fehlgeschlagen' : ''}.${priceHint}`, failed>0);
 }
 
 document.addEventListener('DOMContentLoaded', ()=>{
