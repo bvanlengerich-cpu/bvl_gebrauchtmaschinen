@@ -107,6 +107,10 @@ body{font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--tex
 .lightbox .lb-close{position:absolute;top:18px;right:22px;background:none;border:none;color:#fff;font-size:40px;cursor:pointer;line-height:1}
 
 .empty-state{text-align:center;color:var(--muted);padding:60px 20px;font-size:16px}
+.visitor-footer{display:flex;justify-content:center;margin:34px 0 8px}
+.visitor-pill{display:inline-flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:999px;color:var(--muted);box-shadow:0 4px 14px rgba(0,0,0,.05);padding:8px 13px;font-size:12px}
+.visitor-pill span{font-weight:bold;color:var(--bvl-darker)}
+.visitor-pill strong{font-family:Consolas,"Courier New",monospace;font-size:14px;letter-spacing:1px;color:var(--bvl);line-height:1}
 .hidden{display:none !important}
 @media(max-width:720px){
   .topbar-inner{gap:10px;padding:12px 16px}
@@ -138,6 +142,7 @@ body{font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--tex
   .modal{padding:20px}
   .modal-actions{justify-content:stretch}
   .modal-actions .btn{flex:1}
+  .visitor-footer{margin-top:24px}
 }
 @media(max-width:380px){
   .dealer-toggle{font-size:12px}

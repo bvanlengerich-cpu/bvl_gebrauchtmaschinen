@@ -95,7 +95,8 @@ const I18N = {
     exposeInfo:'Gebrauchtmaschine',
     showDealerPrices:'H\u00e4ndlerpreise anzeigen',
     hideDealerPrices:'H\u00e4ndlerpreise ausblenden',
-    priceFootnote:'* Preise verstehen sich netto, zzgl. gesetzlicher MwSt. sowie Fracht- und Transportkosten.'
+    priceFootnote:'* Preise verstehen sich netto, zzgl. gesetzlicher MwSt. sowie Fracht- und Transportkosten.',
+    visitorCounter:'Besucher'
   },
   en: {
     appTitle:'Used machines',
@@ -144,7 +145,8 @@ const I18N = {
     exposeInfo:'Used machine',
     showDealerPrices:'Show dealer prices',
     hideDealerPrices:'Hide dealer prices',
-    priceFootnote:'* Prices are net prices, excluding VAT and freight/transport costs.'
+    priceFootnote:'* Prices are net prices, excluding VAT and freight/transport costs.',
+    visitorCounter:'Visitors'
   }
 };
 
@@ -258,6 +260,15 @@ function eur(label, v){
   }
   return text;
 }
+function formatVisitCount(value){
+  const n = Number(value);
+  if(!Number.isFinite(n) || n < 0) return '00000';
+  return String(Math.floor(n)).padStart(5, '0');
+}
+function setVisitorCount(value){
+  const el = $('visitorCount');
+  if(el) el.textContent = formatVisitCount(value);
+}
 
 function t(key){ return (I18N[LANG] && I18N[LANG][key]) || key; }
 function fieldLabel(key){ return (FIELD_LABELS[LANG] && FIELD_LABELS[LANG][key]) || key; }
@@ -310,6 +321,7 @@ function updateStaticText(){
   setText('languageLabel', t('languageLabel'));
   if($('languageSelect')) $('languageSelect').value = LANG;
   setText('logoutBtn', t('logout'));
+  setText('visitorLabel', t('visitorCounter'));
   const adminTitle = document.querySelector('#adminBar h2');
   if(adminTitle) adminTitle.textContent = t('administration');
   const adminHint = document.querySelector('#adminBar .hint');
@@ -371,7 +383,19 @@ function startApp(){
   updateStaticText();
   if(ROLE === 'admin'){ $('adminBar').classList.remove('hidden'); }
   else { $('adminBar').classList.add('hidden'); }
+  recordVisit();
   loadMachines();
+}
+
+async function recordVisit(){
+  try{
+    const r = await fetch('/api/visit', {method:'POST'});
+    if(!r.ok) return;
+    const data = await r.json();
+    setVisitorCount(data.count);
+  }catch(err){
+    console.warn('Besucherzaehler konnte nicht aktualisiert werden', err);
+  }
 }
 
 async function loadMachines(){

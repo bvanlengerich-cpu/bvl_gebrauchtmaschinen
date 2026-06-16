@@ -50,9 +50,18 @@ CREATE TABLE IF NOT EXISTS images (
   sort INTEGER DEFAULT 0,
   FOREIGN KEY (machine_id) REFERENCES machines(id) ON DELETE CASCADE
 );
+CREATE TABLE IF NOT EXISTS app_stats (
+  key TEXT PRIMARY KEY,
+  value INTEGER NOT NULL DEFAULT 0
+);
 `);
 
 const MACHINE_FIELDS = ['typ','art','angebotsnummer','baujahr','betriebsstunden','zustand','listenpreis','haendler_ep','standort','verfuegbarkeit','sonstiges'];
+const incrementVisitCounter = db.transaction(() => {
+  db.prepare("INSERT OR IGNORE INTO app_stats (key, value) VALUES ('visits', 0)").run();
+  db.prepare("UPDATE app_stats SET value = value + 1 WHERE key = 'visits'").run();
+  return db.prepare("SELECT value FROM app_stats WHERE key = 'visits'").get().value;
+});
 
 // ---------- Auth-Helfer ----------
 function makeToken(role) {
@@ -124,6 +133,16 @@ app.post('/api/logout', (req, res) => {
 });
 app.get('/api/me', (req, res) => {
   res.json({ role: currentRole(req) });
+});
+
+// ---------- Besucherzaehler ----------
+app.post('/api/visit', requireAuth, (req, res) => {
+  try {
+    res.json({ count: incrementVisitCounter() });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Besucherzaehler konnte nicht aktualisiert werden' });
+  }
 });
 
 // ---------- Maschinen lesen ----------
