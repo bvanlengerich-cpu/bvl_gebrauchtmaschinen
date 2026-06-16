@@ -94,6 +94,110 @@ async function extractOfferNumberFromPDF(pdfFile){
     return m?m[0].toUpperCase():"";
   }
 }
+function hasGrossListPriceLabel(value){
+  const compact = String(value || "").toLowerCase()
+    .replace(/\s+/g,"")
+    .replace(/[-_:]/g,"");
+  return compact.includes("bruttolistenpreis")
+    || compact.includes("bruttolistprice")
+    || compact.includes("grosslistprice")
+    || compact.includes("listpricegross");
+}
+function normalizeListPriceValue(value){
+  const text = String(value || "")
+    .replace(/\u00a0/g," ")
+    .replace(/\s+/g," ")
+    .trim();
+  const matches = text.match(/-?\d{1,3}(?:[.\s]\d{3})+(?:,\d{2})?|-?\d{4,}(?:[,.]\d{2})?/g) || [];
+  for(const raw of matches){
+    let cleaned = String(raw)
+      .replace(/\s+/g,"")
+      .replace(/[^\d,.-]/g,"")
+      .trim();
+    if(!cleaned) continue;
+
+    const comma = cleaned.lastIndexOf(",");
+    const dot = cleaned.lastIndexOf(".");
+    if(comma !== -1 && dot !== -1){
+      cleaned = comma > dot
+        ? cleaned.replace(/\./g,"").replace(",",".")
+        : cleaned.replace(/,/g,"");
+    }else if(comma !== -1){
+      cleaned = /^\d{1,3}(,\d{3})+$/.test(cleaned)
+        ? cleaned.replace(/,/g,"")
+        : cleaned.replace(",",".");
+    }else if(dot !== -1 && /^\d{1,3}(\.\d{3})+$/.test(cleaned)){
+      cleaned = cleaned.replace(/\./g,"");
+    }
+
+    const n = Number(cleaned);
+    if(Number.isFinite(n) && n > 0) return String(Math.round(n));
+  }
+  return "";
+}
+function listPriceFromLabeledText(value){
+  const text = String(value || "").replace(/\s+/g," ").trim();
+  const label = text.match(/brutto\s*-?\s*listenpreis|gross\s+list\s+price|list\s+price\s+gross/i);
+  if(!label) return "";
+  const afterLabel = text.slice(label.index + label[0].length);
+  return normalizeListPriceValue(afterLabel) || normalizeListPriceValue(text);
+}
+async function extractListPriceFromPDF(pdfFile){
+  try{
+    if(!pdfFile || !window.pdfjsLib) return "";
+    const buffer = await pdfFile.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({data:buffer}).promise;
+    const maxPages = Math.min(pdf.numPages || 1, 5);
+
+    for(let p=1;p<=maxPages;p++){
+      const page = await pdf.getPage(p);
+      const tc = await page.getTextContent();
+      const items = tc.items.map(i=>({str:String(i.str||"").trim(), x:i.transform[4]||0, y:i.transform[5]||0})).filter(i=>i.str);
+
+      const labelItems = items.filter(i=>hasGrossListPriceLabel(i.str));
+      for(const label of labelItems){
+        const right = items
+          .filter(i=>i!==label && Math.abs(i.y-label.y)<=10 && i.x>=label.x)
+          .sort((a,b)=>a.x-b.x);
+        const rightPrice = normalizeListPriceValue(right.map(i=>i.str).join(" "));
+        if(rightPrice) return rightPrice;
+      }
+
+      const rowsMap = {};
+      items.forEach(it=>{ const y=Math.round(it.y/3)*3; (rowsMap[y]=rowsMap[y]||[]).push(it); });
+      const rows = Object.entries(rowsMap).map(([y,ri])=>{
+        ri.sort((a,b)=>a.x-b.x);
+        return {
+          y:Number(y),
+          items:ri,
+          text:ri.map(i=>i.str).join(" ").replace(/\s+/g," ").trim(),
+          compact:ri.map(i=>i.str).join("").replace(/\s+/g,"").trim()
+        };
+      }).sort((a,b)=>b.y-a.y);
+
+      for(let i=0;i<rows.length;i++){
+        const row = rows[i];
+        if(!hasGrossListPriceLabel(row.text) && !hasGrossListPriceLabel(row.compact)) continue;
+        const sameRowPrice = listPriceFromLabeledText(row.text) || listPriceFromLabeledText(row.compact) || normalizeListPriceValue(row.text);
+        if(sameRowPrice) return sameRowPrice;
+        const nextRows = rows.slice(i + 1, i + 4).map(r=>r.text).join(" ");
+        const nextPrice = normalizeListPriceValue(nextRows);
+        if(nextPrice) return nextPrice;
+      }
+
+      const fullText = rows.map(r=>r.text).join(" ");
+      const fullTextPrice = listPriceFromLabeledText(fullText);
+      if(fullTextPrice) return fullTextPrice;
+    }
+    return "";
+  }catch(err){
+    console.error("Listenpreis aus PDF fehlgeschlagen", err);
+    return "";
+  }
+}
+if(typeof window !== "undefined"){
+  window.extractListPriceFromPDF = extractListPriceFromPDF;
+}
 async function extractMachineTitleFromPDF(pdfFile){
   try{
     if(!pdfFile || !window.pdfjsLib) return "";
@@ -201,6 +305,7 @@ async function handleFolderImport(e){
       if(!parsed.values) parsed.values = {};
       const pdfMachineTitle = await extractMachineTitleFromPDF(pdf);
       const pdfOfferNumber = await extractOfferNumberFromPDF(pdf);
+      const pdfListPrice = await extractListPriceFromPDF(pdf);
 
       const v = parsed.values;
       const fd = new FormData();
@@ -210,7 +315,7 @@ async function handleFolderImport(e){
       fd.append('baujahr', v.baujahr || "");
       fd.append('betriebsstunden', v.betriebsstunden || "");
       fd.append('zustand', v.zustand || "");
-      fd.append('listenpreis', v.listenpreis || "");
+      fd.append('listenpreis', pdfListPrice || v.listenpreis || "");
       fd.append('haendler_ep', v.haendler_ep || "");
       fd.append('standort', v.standort || "");
       fd.append('verfuegbarkeit', v.verfuegbarkeit || "");

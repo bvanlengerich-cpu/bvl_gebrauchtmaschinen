@@ -741,6 +741,11 @@ $('machineForm').addEventListener('submit', async function(e){
       r = await fetch('/api/machines/'+id, {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)});
     } else {
       // Neu: FormData mit Dateien
+      const pdfFile = $('pdfInput').files[0];
+      if(pdfFile && this.elements.listenpreis && !this.elements.listenpreis.value.trim() && typeof window.extractListPriceFromPDF === 'function'){
+        const pdfListPrice = await window.extractListPriceFromPDF(pdfFile);
+        if(pdfListPrice) this.elements.listenpreis.value = pdfListPrice;
+      }
       const fd = new FormData();
       ['typ','art','angebotsnummer','baujahr','betriebsstunden','zustand','listenpreis','haendler_ep','standort','verfuegbarkeit','sonstiges']
         .forEach(k=>{ fd.append(k, this.elements[k] ? this.elements[k].value : ''); });
@@ -748,7 +753,7 @@ $('machineForm').addEventListener('submit', async function(e){
       for(let i=0;i<imgs.length;i++) fd.append('images', imgs[i]);
       const ti = document.querySelector('input[name="titleIndex"]:checked');
       fd.append('titleIndex', ti ? ti.value : '0');
-      if($('pdfInput').files[0]) fd.append('pdf', $('pdfInput').files[0]);
+      if(pdfFile) fd.append('pdf', pdfFile);
       r = await fetch('/api/machines', {method:'POST', body: fd});
     }
     if(!r.ok){ const er = await r.json().catch(()=>({})); throw new Error(er.error||t('formError')); }
