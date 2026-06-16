@@ -65,14 +65,26 @@ function cleanMachineTitle(raw){
   for(const p of patterns){ const m=t.match(p); if(m){ return m[0].replace(/\s*-\s*(\dS)\b/i,"-$1").replace(/\s+/g," ").trim(); } }
   return "";
 }
+async function ensurePdfLib(){
+  if(window.pdfjsLib) return window.pdfjsLib;
+  await new Promise(resolve=>{
+    const timer = setTimeout(resolve, 4000);
+    window.addEventListener('pdfjs-ready', ()=>{
+      clearTimeout(timer);
+      resolve();
+    }, {once:true});
+  });
+  return window.pdfjsLib || null;
+}
 async function extractOfferNumberFromPDF(pdfFile){
   try{
     if(!pdfFile) return "";
     function normAn(v){ if(!v) return ""; const t=String(v).replace(/[–—−]/g,"-").replace(/\s+/g,"").replace(/_/g,"").trim(); const m=t.match(/AN-\d{2,}\.\d{3,}/i); return m?m[0].toUpperCase():""; }
     const fromFileName = normAn(pdfFile.name);
-    if(!window.pdfjsLib) return fromFileName;
+    const pdfLib = await ensurePdfLib();
+    if(!pdfLib) return fromFileName;
     const buffer = await pdfFile.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({data:buffer}).promise;
+    const pdf = await pdfLib.getDocument({data:buffer}).promise;
     const page = await pdf.getPage(1);
     const text = await page.getTextContent();
     const items = text.items.map(i=>({str:String(i.str||"").trim(), x:i.transform[4]||0, y:i.transform[5]||0})).filter(i=>i.str);
@@ -147,12 +159,13 @@ function listPriceFromLabeledText(value){
 async function extractListPriceFromPDF(pdfFile){
   try{
     if(!pdfFile) return "";
-    if(!window.pdfjsLib){
+    const pdfLib = await ensurePdfLib();
+    if(!pdfLib){
       console.warn("PDF-Bibliothek nicht geladen, Listenpreis kann nicht ausgelesen werden.");
       return "";
     }
     const buffer = await pdfFile.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({data:buffer}).promise;
+    const pdf = await pdfLib.getDocument({data:buffer}).promise;
     const maxPages = pdf.numPages || 1;
 
     for(let p=1;p<=maxPages;p++){
@@ -206,7 +219,9 @@ if(typeof window !== "undefined"){
 }
 async function extractMachineTitleFromPDF(pdfFile){
   try{
-    if(!pdfFile || !window.pdfjsLib) return "";
+    if(!pdfFile) return "";
+    const pdfLib = await ensurePdfLib();
+    if(!pdfLib) return "";
     function normTitle(v){
       if(!v) return "";
       let text=String(v).replace(/V\s*-\s*MIX/ig,"V-MIX").replace(/V\s*-\s*LOAD/ig,"V-LOAD").replace(/V\s*-\s*COMFORT/ig,"V-COMFORT")
@@ -225,7 +240,7 @@ async function extractMachineTitleFromPDF(pdfFile){
       return "";
     }
     const buffer=await pdfFile.arrayBuffer();
-    const pdf=await pdfjsLib.getDocument({data:buffer}).promise;
+    const pdf=await pdfLib.getDocument({data:buffer}).promise;
     const maxPages=Math.min(pdf.numPages,2);
     for(let p=1;p<=maxPages;p++){
       const page=await pdf.getPage(p);
