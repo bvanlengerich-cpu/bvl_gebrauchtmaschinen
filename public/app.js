@@ -96,7 +96,26 @@ const I18N = {
     showDealerPrices:'H\u00e4ndlerpreise anzeigen',
     hideDealerPrices:'H\u00e4ndlerpreise ausblenden',
     priceFootnote:'* Preise verstehen sich netto, zzgl. gesetzlicher MwSt. sowie Fracht- und Transportkosten.',
-    visitorCounter:'Besucher'
+    visitorCounter:'Besucher',
+    notifications:'Benachrichtigungen',
+    notificationHint:'Empfaenger eintragen, die automatisch per E-Mail informiert werden, wenn eine neue Maschine hochgeladen wird.',
+    notificationRecipients:'E-Mail-Empfaenger',
+    notificationTemplateTitle:'Mailtexte',
+    notificationTemplateHint:'Platzhalter: {maschine}, {angebotsnummer}, {listenpreis}, {standort}, {portal}',
+    notificationNewSubject:'Betreff: neue Maschine',
+    notificationNewIntro:'Text: neue Maschine',
+    notificationSoldSubject:'Betreff: Maschine verkauft',
+    notificationSoldIntro:'Text: Maschine verkauft',
+    notificationSaved:'Benachrichtigungen gespeichert.',
+    notificationTest:'Test-E-Mail senden',
+    notificationTestSent:'Test-E-Mail wurde gesendet.',
+    notificationSmtpReady:'SMTP ist konfiguriert.',
+    notificationSmtpMissing:'SMTP ist noch nicht konfiguriert.',
+    close:'Schliessen',
+    deleteMachineTitle:'Maschine loeschen',
+    notifySold:'Vertriebler benachrichtigen: Maschine wurde verkauft',
+    deleteInProgress:'Loesche...',
+    soldNotificationHint:'Beim Aktivieren wird nach dem Loeschen eine Verkaufs-E-Mail versendet.'
   },
   en: {
     appTitle:'Used machines',
@@ -146,7 +165,26 @@ const I18N = {
     showDealerPrices:'Show dealer prices',
     hideDealerPrices:'Hide dealer prices',
     priceFootnote:'* Prices are net prices, excluding VAT and freight/transport costs.',
-    visitorCounter:'Visitors'
+    visitorCounter:'Visitors',
+    notifications:'Notifications',
+    notificationHint:'Enter recipients who should automatically receive an email when a new machine is uploaded.',
+    notificationRecipients:'Email recipients',
+    notificationTemplateTitle:'Email texts',
+    notificationTemplateHint:'Placeholders: {maschine}, {angebotsnummer}, {listenpreis}, {standort}, {portal}',
+    notificationNewSubject:'Subject: new machine',
+    notificationNewIntro:'Text: new machine',
+    notificationSoldSubject:'Subject: machine sold',
+    notificationSoldIntro:'Text: machine sold',
+    notificationSaved:'Notification settings saved.',
+    notificationTest:'Send test email',
+    notificationTestSent:'Test email has been sent.',
+    notificationSmtpReady:'SMTP is configured.',
+    notificationSmtpMissing:'SMTP is not configured yet.',
+    close:'Close',
+    deleteMachineTitle:'Delete machine',
+    notifySold:'Notify sales team: machine has been sold',
+    deleteInProgress:'Deleting...',
+    soldNotificationHint:'When enabled, a sold notification email is sent after deletion.'
   }
 };
 
@@ -322,6 +360,25 @@ function updateStaticText(){
   if($('languageSelect')) $('languageSelect').value = LANG;
   setText('logoutBtn', t('logout'));
   setText('visitorLabel', t('visitorCounter'));
+  setText('notifySettingsBtn', t('notifications'));
+  setText('notificationTitle', t('notifications'));
+  setText('notificationHint', t('notificationHint'));
+  setText('notificationRecipientsLabel', t('notificationRecipients'));
+  setText('notificationTemplateTitle', t('notificationTemplateTitle'));
+  setText('notificationTemplateHint', t('notificationTemplateHint'));
+  setText('notificationNewSubjectLabel', t('notificationNewSubject'));
+  setText('notificationNewIntroLabel', t('notificationNewIntro'));
+  setText('notificationSoldSubjectLabel', t('notificationSoldSubject'));
+  setText('notificationSoldIntroLabel', t('notificationSoldIntro'));
+  if($('notificationRecipients')) $('notificationRecipients').placeholder = 'name@firma.de\nvertrieb@firma.de';
+  setText('notificationTestBtn', t('notificationTest'));
+  setText('notificationCancelBtn', t('close'));
+  setText('notificationSaveBtn', t('save'));
+  setText('deleteTitle', t('deleteMachineTitle'));
+  setText('deleteText', t('deleteConfirm'));
+  setText('notifySoldText', t('notifySold'));
+  setText('deleteCancelBtn', t('cancel'));
+  setText('deleteConfirmBtn', t('delete'));
   const adminTitle = document.querySelector('#adminBar h2');
   if(adminTitle) adminTitle.textContent = t('administration');
   const adminHint = document.querySelector('#adminBar .hint');
@@ -431,11 +488,11 @@ function cardHtml(m){
   let actions = '';
   if(ROLE === 'admin'){
     actions = `<button class="btn ghost" onclick="editMachine(${m.id})">${esc(t('edit'))}</button>
-               <button class="btn accent" onclick="deleteMachine(${m.id})">Löschen</button>`;
+               <button class="btn accent" onclick="openDeleteMachine(${m.id})">Löschen</button>`;
   }
   if(ROLE === 'admin'){
     actions = `<button class="btn ghost" onclick="editMachine(${m.id})">${esc(t('edit'))}</button>
-               <button class="btn accent" onclick="deleteMachine(${m.id})">${esc(t('delete'))}</button>`;
+               <button class="btn accent" onclick="openDeleteMachine(${m.id})">${esc(t('delete'))}</button>`;
   }
   return `<div class="card">
     <div class="heroWrap">${hero}${badge}</div>
@@ -480,6 +537,128 @@ document.addEventListener('keydown', e=>{
     if(e.key==='ArrowRight') lbMove(1);
   }
 });
+
+// ---------- Admin: Benachrichtigungen ----------
+const DEFAULT_NOTIFICATION_TEMPLATES = {
+  newSubject: 'Neue Maschine im Portal: {maschine}',
+  newIntro: 'Im Gebrauchtmaschinenportal wurde eine neue Maschine hochgeladen:',
+  soldSubject: 'Maschine verkauft: {maschine}',
+  soldIntro: 'Die folgende Maschine wurde im Gebrauchtmaschinenportal als verkauft geloescht:'
+};
+function setNotificationTemplateFields(templates){
+  const source = Object.assign({}, DEFAULT_NOTIFICATION_TEMPLATES, templates || {});
+  $('notificationNewSubject').value = source.newSubject || DEFAULT_NOTIFICATION_TEMPLATES.newSubject;
+  $('notificationNewIntro').value = source.newIntro || DEFAULT_NOTIFICATION_TEMPLATES.newIntro;
+  $('notificationSoldSubject').value = source.soldSubject || DEFAULT_NOTIFICATION_TEMPLATES.soldSubject;
+  $('notificationSoldIntro').value = source.soldIntro || DEFAULT_NOTIFICATION_TEMPLATES.soldIntro;
+}
+function getNotificationTemplateFields(){
+  return {
+    newSubject: $('notificationNewSubject').value,
+    newIntro: $('notificationNewIntro').value,
+    soldSubject: $('notificationSoldSubject').value,
+    soldIntro: $('notificationSoldIntro').value
+  };
+}
+function openNotificationModal(){ $('notificationModal').classList.remove('hidden'); }
+function closeNotificationModal(){ $('notificationModal').classList.add('hidden'); }
+function updateSmtpStatus(configured, from){
+  const el = $('smtpStatus');
+  if(!el) return;
+  const label = configured ? t('notificationSmtpReady') : t('notificationSmtpMissing');
+  const fromText = from ? ` · ${from}` : '';
+  el.innerHTML = `<strong>SMTP:</strong> ${esc(label + fromText)}`;
+}
+async function openNotificationSettings(){
+  $('notificationStatus').textContent = '';
+  $('notificationRecipients').value = '';
+  setNotificationTemplateFields(DEFAULT_NOTIFICATION_TEMPLATES);
+  updateSmtpStatus(false, '');
+  openNotificationModal();
+  try{
+    const r = await fetch('/api/notification-settings');
+    if(!r.ok) throw new Error(t('formError'));
+    const data = await r.json();
+    $('notificationRecipients').value = data.recipients || '';
+    setNotificationTemplateFields(data.templates);
+    updateSmtpStatus(Boolean(data.smtpConfigured), data.mailFrom || '');
+  }catch(err){
+    $('notificationStatus').textContent = t('formError') + err.message;
+  }
+}
+async function saveNotificationSettings(){
+  $('notificationSaveBtn').disabled = true;
+  $('notificationStatus').textContent = t('saving');
+  try{
+    const r = await fetch('/api/notification-settings', {
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        recipients: $('notificationRecipients').value,
+        templates: getNotificationTemplateFields()
+      })
+    });
+    const data = await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(data.error || t('formError'));
+    $('notificationRecipients').value = data.recipients || '';
+    setNotificationTemplateFields(data.templates);
+    updateSmtpStatus(Boolean(data.smtpConfigured), '');
+    $('notificationStatus').textContent = t('notificationSaved');
+    return true;
+  }catch(err){
+    $('notificationStatus').textContent = t('formError') + err.message;
+    return false;
+  }finally{
+    $('notificationSaveBtn').disabled = false;
+  }
+}
+async function sendTestNotification(){
+  $('notificationTestBtn').disabled = true;
+  $('notificationStatus').textContent = t('saving');
+  try{
+    const saved = await saveNotificationSettings();
+    if(!saved) return;
+    const r = await fetch('/api/notification-settings/test', {method:'POST'});
+    const data = await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(data.error || t('formError'));
+    $('notificationStatus').textContent = t('notificationTestSent');
+  }catch(err){
+    $('notificationStatus').textContent = t('formError') + err.message;
+  }finally{
+    $('notificationTestBtn').disabled = false;
+  }
+}
+
+// ---------- Admin: Loeschen ----------
+let PENDING_DELETE_ID = null;
+function openDeleteMachine(id){
+  PENDING_DELETE_ID = id;
+  $('notifySoldCheck').checked = false;
+  $('deleteStatus').textContent = t('soldNotificationHint');
+  $('deleteModal').classList.remove('hidden');
+}
+function closeDeleteModal(){
+  PENDING_DELETE_ID = null;
+  $('deleteModal').classList.add('hidden');
+}
+async function confirmDeleteMachine(){
+  if(!PENDING_DELETE_ID) return;
+  const id = PENDING_DELETE_ID;
+  const notifySold = $('notifySoldCheck').checked;
+  $('deleteConfirmBtn').disabled = true;
+  $('deleteStatus').textContent = t('deleteInProgress');
+  try{
+    const r = await fetch('/api/machines/'+id+'?notifySold='+(notifySold ? '1' : '0'), {method:'DELETE'});
+    if(r.ok){
+      closeDeleteModal();
+      loadMachines();
+    }else{
+      alert(t('deleteFailed'));
+    }
+  }finally{
+    $('deleteConfirmBtn').disabled = false;
+  }
+}
 
 // ---------- Expose-PDF ----------
 function uploadUrl(filename){ return '/uploads/' + encodeURIComponent(filename); }
@@ -868,6 +1047,12 @@ $('pwInput').addEventListener('keydown', e=>{ if(e.key==='Enter') tryLogin(); })
 $('logoutBtn').addEventListener('click', async ()=>{ await fetch('/api/logout',{method:'POST'}); location.reload(); });
 $('addBtn').addEventListener('click', newMachine);
 $('cancelBtn').addEventListener('click', closeForm);
+$('notifySettingsBtn').addEventListener('click', openNotificationSettings);
+$('notificationCancelBtn').addEventListener('click', closeNotificationModal);
+$('notificationSaveBtn').addEventListener('click', saveNotificationSettings);
+$('notificationTestBtn').addEventListener('click', sendTestNotification);
+$('deleteCancelBtn').addEventListener('click', closeDeleteModal);
+$('deleteConfirmBtn').addEventListener('click', confirmDeleteMachine);
 $('languageSelect').addEventListener('change', e=>{ LANG = e.target.value === 'en' ? 'en' : 'de'; applyLanguage(); });
 $('dealerPriceToggle').addEventListener('click', ()=>{
   DEALER_PRICE_VISIBLE = !DEALER_PRICE_VISIBLE;

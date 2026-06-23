@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BvL Gebrauchtmaschinen</title>
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles.css?v=20260617-mail2">
 <link rel="icon" href="logo-bvl.svg">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="vendor/jspdf.umd.min.js"></script>
@@ -69,6 +69,7 @@
       <div class="hint">W&auml;hlen Sie einen Ordner mit den Maschinen-Unterordnern (je Maschine: Excel, PDF-Angebot und Fotos). Name, Angebotsnummer und Daten werden automatisch ausgelesen. Mehrere Maschinen auf einmal m&ouml;glich.</div>
       <button id="folderBtn" class="btn">&#128193; Maschinen-Ordner hochladen</button>
       <button id="addBtn" class="btn ghost">Einzeln manuell hinzuf&uuml;gen</button>
+      <button id="notifySettingsBtn" class="btn ghost">Benachrichtigungen</button>
       <input type="file" id="folderInput" webkitdirectory directory multiple style="display:none">
       <div id="importStatus" class="formstatus"></div>
     </div>
@@ -122,6 +123,62 @@
   </div>
 </div>
 
+<!-- BENACHRICHTIGUNGEN -->
+<div id="notificationModal" class="modal-overlay hidden">
+  <div class="modal notification-modal">
+    <h2 id="notificationTitle">Benachrichtigungen</h2>
+    <p id="notificationHint" class="modal-hint">Empf&auml;nger eintragen, die automatisch per E-Mail informiert werden.</p>
+    <div class="field full">
+      <label id="notificationRecipientsLabel">E-Mail-Empf&auml;nger</label>
+      <textarea id="notificationRecipients" rows="8" placeholder="name@firma.de&#10;vertrieb@firma.de"></textarea>
+    </div>
+    <div class="template-section">
+      <h3 id="notificationTemplateTitle">Mailtexte</h3>
+      <p id="notificationTemplateHint" class="placeholder-note">Platzhalter: {maschine}, {angebotsnummer}, {listenpreis}, {standort}, {portal}</p>
+      <div class="field full">
+        <label id="notificationNewSubjectLabel">Betreff: neue Maschine</label>
+        <input id="notificationNewSubject" type="text">
+      </div>
+      <div class="field full">
+        <label id="notificationNewIntroLabel">Text: neue Maschine</label>
+        <textarea id="notificationNewIntro" rows="4"></textarea>
+      </div>
+      <div class="field full">
+        <label id="notificationSoldSubjectLabel">Betreff: Maschine verkauft</label>
+        <input id="notificationSoldSubject" type="text">
+      </div>
+      <div class="field full">
+        <label id="notificationSoldIntroLabel">Text: Maschine verkauft</label>
+        <textarea id="notificationSoldIntro" rows="4"></textarea>
+      </div>
+    </div>
+    <div id="smtpStatus" class="settings-meta"></div>
+    <div class="modal-actions">
+      <button type="button" id="notificationTestBtn" class="btn ghost">Test-E-Mail senden</button>
+      <button type="button" id="notificationCancelBtn" class="btn ghost">Schlie&szlig;en</button>
+      <button type="button" id="notificationSaveBtn" class="btn">Speichern</button>
+    </div>
+    <div id="notificationStatus" class="formstatus"></div>
+  </div>
+</div>
+
+<!-- LOESCHEN -->
+<div id="deleteModal" class="modal-overlay hidden">
+  <div class="modal modal-small">
+    <h2 id="deleteTitle">Maschine l&ouml;schen</h2>
+    <p id="deleteText" class="modal-hint">Diese Maschine wirklich l&ouml;schen?</p>
+    <label class="checkrow">
+      <input type="checkbox" id="notifySoldCheck">
+      <span id="notifySoldText">Vertriebler benachrichtigen: Maschine wurde verkauft</span>
+    </label>
+    <div class="modal-actions">
+      <button type="button" id="deleteCancelBtn" class="btn ghost">Abbrechen</button>
+      <button type="button" id="deleteConfirmBtn" class="btn accent">L&ouml;schen</button>
+    </div>
+    <div id="deleteStatus" class="formstatus"></div>
+  </div>
+</div>
+
 <datalist id="artList">
   <option value="Gebrauchtmaschine">
   <option value="Demomaschine">
@@ -129,7 +186,7 @@
   <option value="Sonstiges">
 </datalist>
 
-<script src="import.js?v=20260616-visitor1"></script>
-<script src="app.js?v=20260616-visitor1"></script>
+<script src="import.js?v=20260617-mail2"></script>
+<script src="app.js?v=20260617-mail2"></script>
 </body>
 </html>

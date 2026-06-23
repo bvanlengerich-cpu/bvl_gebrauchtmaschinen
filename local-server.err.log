@@ -1,0 +1,9 @@
+npm : Die Benennung "npm" wurde nicht als Name eines Cmdlet, einer Funktion, einer Skriptdatei oder eines ausfÅhrbaren 
+Programms erkannt. öberprÅfen Sie die Schreibweise des Namens, oder ob der Pfad korrekt ist (sofern enthalten), und 
+wiederholen Sie den Vorgang.
+In Zeile:1 Zeichen:80
++ ... env:ADMIN_PASSWORD='admin'; $env:VIEWER_PASSWORD='ansehen'; npm start
++                                                                 ~~~
+    + CategoryInfo          : ObjectNotFound: (npm:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
